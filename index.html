@@ -1,349 +1,895 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>访客IP信息</title>
-  
-</head>
-<body>
-    <style>
-        .card-demo {
-          font-family: sans-serif;
-          color: #fff;
-          background: transparent;
-        }
-        .card-demo .info-box {
-          background: #222;
-          padding: 16px 18px;
-          border-radius: 8px;
-          box-shadow: 0 1px 6px #0006;
-          max-width: 100%;
-          margin: 0 auto;
-          font-size: 15px;
-          box-sizing: border-box;
-        }
-        .card-demo .info-label { color: #aaa; margin-top: 10px; font-size: 13px; }
-        .card-demo .info-value { word-break: break-all; margin-bottom: 10px; color: #fff; font-size: 15px; }
-        .card-demo .info-address { color: #6cf; font-size: 13px; margin-bottom: 8px; }
-        .card-demo .ua-label { color: #aaa; margin-top: 18px; font-size: 13px; }
-        .card-demo .ua-value { color: #fff; font-size: 13px; word-break: break-all; }
-        .card-demo .trace-label { color: #aaa; margin-top: 18px; font-size: 13px; }
-        .card-demo .trace-value { color: #fff; font-size: 13px; word-break: break-all; }
-        .card-demo .ip-node-value {
-          word-break: break-all;
-          white-space: normal;
-          max-width: 100%;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          display: block;
-          cursor: pointer;
-        }
-        .card-demo .speed-value { font-weight: bold; font-size: 16px; margin-top: 2px; }
-        .card-demo .speed-green { color: #4caf50; }
-        .card-demo .speed-orange { color: #ff9800; }
-        .card-demo .speed-red { color: #f44336; }
-        .card-demo .speed-gray { color: #aaa; }
-      </style>
-  <div class="card-demo">
-    <div class="info-box">
-      <div class="info-label">当前访问优先（IPv4/IPv6）：</div>
-      <div class="info-value" id="ip-priority">检测中...</div>
-      <div class="info-label">IPv4：</div>
-      <div class="info-value" id="ip-v4">检测中...</div>
-      <div class="info-address" id="ip-v4-addr"></div>
-      <div class="trace-label">IPv4溯源：</div>
-      <div class="trace-value" id="ip-trace">检测中...</div>
-      <div class="trace-label">WebRTC泄露检测：</div>
-      <div class="trace-value" id="webrtc-leak">检测中...</div>
-      <div class="info-label">IPv6：</div>
-      <div class="info-value" id="ip-v6">检测中...</div>
-      <div class="info-address" id="ip-v6-addr"></div>
-      <div class="ua-label">操作系统：</div>
-      <div class="ua-value" id="os-type">检测中...</div>
-      <div class="ua-label">浏览器UA：</div>
-      <div class="ua-value" id="ua"></div>
-      <div class="trace-label">常用网站测速：</div>
-      <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
-        <div style="flex:1;min-width:80px;text-align:center;">
-          <div style="color:#aaa;">百度</div>
-          <div id="speed-baidu" class="speed-value">测速中...</div>
-        </div>
-        <div style="flex:1;min-width:80px;text-align:center;">
-          <div style="color:#aaa;">Github</div>
-          <div id="speed-github" class="speed-value">测速中...</div>
-        </div>
-        <div style="flex:1;min-width:80px;text-align:center;">
-          <div style="color:#aaa;">Cloudflare</div>
-          <div id="speed-cloudflare" class="speed-value">测速中...</div>
-        </div>
-        <div style="flex:1;min-width:80px;text-align:center;">
-          <div style="color:#aaa;">Google</div>
-          <div id="speed-google" class="speed-value">测速中...</div>
-        </div>
-      </div>
-      <div class="trace-label">节点IP测试：</div>
-      <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;">
-        <div style="flex:1;min-width:120px;text-align:center;">
-          <div style="color:#aaa;">国内 IPv4</div>
-          <div id="node-itdog-v4-cm" class="ip-node-value">检测中...</div>
-        </div>
-        <div style="flex:1;min-width:120px;text-align:center;">
-          <div style="color:#aaa;">国内 IPv6</div>
-          <div id="node-itdog-v6-cm" class="ip-node-value">检测中...</div>
-        </div>
-      </div>
-      <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
-        <div style="flex:1;min-width:120px;text-align:center;">
-          <div style="color:#aaa;">港澳台 IPv4</div>
-          <div id="node-itdog-v4-over" class="ip-node-value">检测中...</div>
-        </div>
-        <div style="flex:1;min-width:120px;text-align:center;">
-          <div style="color:#aaa;">港澳台 IPv6</div>
-          <div id="node-itdog-v6-over" class="ip-node-value">检测中...</div>
-        </div>
-        <div style="flex:1;min-width:120px;text-align:center;">
-          <div style="color:#aaa;">海外 IPv4</div>
-          <div id="node-lvhai-v4" class="ip-node-value">检测中...</div>
-        </div>
-        <div style="flex:1;min-width:120px;text-align:center;">
-          <div style="color:#aaa;">海外 IPv6</div>
-          <div id="node-lvhai-v6" class="ip-node-value">检测中...</div>
-        </div>
-      </div>
-      <div style="text-align:center;color:#888;font-size:13px;margin-top:18px;">
-          Powered By <a href="https://apmiy.github.io" target="_blank" style="color:#6cf;text-decoration:none;">Apmiy</a>
-      </div>
-    </div>
-  </div>
-  <script>
-    document.getElementById('ua').textContent = navigator.userAgent;
-    // 访问优先
-    fetch('https://test.itdog.cn/')
-      .then(r => r.json())
-      .then(data => {
-        let version = data.version;
-        if (version && version.toUpperCase() === 'IPV6') version = 'IPv6';
-        if (version && version.toUpperCase() === 'IPV4') version = 'IPv4';
-        document.getElementById('ip-priority').textContent = version || '未知';
-      })
-      .catch(() => {
-        document.getElementById('ip-priority').textContent = '获取失败';
-      });
-    let ipv4FromItdog = '';
-    // IPv4
-    fetch('https://ipv4_ct.itdog.cn/')
-      .then(r => r.json())
-      .then(data => {
-        document.getElementById('ip-v4').textContent = data.ip || '无';
-        document.getElementById('ip-v4-addr').textContent = data.address || '';
-        ipv4FromItdog = data.ip || '';
-        // 自动溯源
-        if(data.ip) {
-          fetch('https://ipsy.072103.xyz/api/query', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ip: data.ip })
-          })
-          .then(r => r.json())
-          .then(trace => {
-            if(trace.error) {
-              document.getElementById('ip-trace').textContent = '溯源失败：' + trace.error;
-            } else if(trace.location) {
-              let info = [];
-              if(trace.location.country) info.push('国家: ' + trace.location.country);
-              if(trace.location.province) info.push('省份: ' + trace.location.province);
-              if(trace.location.city) info.push('城市: ' + trace.location.city);
-              if(trace.location.district) info.push('区县: ' + trace.location.district);
-              if(trace.location.detail) info.push('详细: ' + trace.location.detail);
-              if(trace.location.lat && trace.location.lng) info.push('经纬度: ' + trace.location.lat + ',' + trace.location.lng);
-              document.getElementById('ip-trace').textContent = info.join('，');
-            } else {
-              document.getElementById('ip-trace').textContent = '无溯源数据';
-            }
-          })
-          .catch(() => {
-            document.getElementById('ip-trace').textContent = '溯源请求失败';
-          });
-        } else {
-          document.getElementById('ip-trace').textContent = '无IP，无法溯源';
-        }
-        // WebRTC泄露检测
-        detectWebRTCLeak(data.ip);
-      })
-      .catch(() => {
-        document.getElementById('ip-v4').textContent = '获取失败';
-        document.getElementById('ip-trace').textContent = '无法溯源';
-        document.getElementById('webrtc-leak').textContent = '无法检测';
-      });
-    // IPv6
-    fetch('https://ipv6.itdog.cn/')
-      .then(r => r.json())
-      .then(data => {
-        document.getElementById('ip-v6').textContent = data.ip || '无';
-        document.getElementById('ip-v6-addr').textContent = data.address || '';
-      })
-      .catch(() => {
-        document.getElementById('ip-v6').textContent = '获取失败';
-      });
-    // 操作系统识别（只区分能100%辨别的主流系统）
-    function detectOS(ua) {
-      ua = ua.toLowerCase();
-      if (/windows nt/.test(ua)) return 'Windows';
-      if (/android/.test(ua)) return 'Android';
-      if (/iphone|ipad|ipod/.test(ua)) return 'iOS';
-      if (/linux/.test(ua) && !/android/.test(ua)) return 'Linux';
-      if (/macintosh|mac os x/.test(ua)) return 'Mac OS';
-      return '未知系统';
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>访客 IP 信息</title>
+
+  <style>
+    :root {
+      --bg: #ffffff;
+      --paper: #ffffff;
+      --ink: #111111;
+      --muted: #6b7280;
+      --muted-2: #9ca3af;
+      --line: #eef0f3;
+      --line-strong: #e5e7eb;
+      --dark: #111111;
+      --dark-2: #1f2937;
+      --white: #ffffff;
+      --green: #16a34a;
+      --yellow: #f59e0b;
+      --red: #dc2626;
+      --gray: #9ca3af;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Microsoft YaHei", Arial, sans-serif;
     }
-    document.getElementById('os-type').textContent = detectOS(navigator.userAgent);
-    // WebRTC泄露检测
-    function detectWebRTCLeak(ipv4) {
-      let foundLeak = false;
-      let stunServer = { urls: 'stun:stun.l.google.com:19302' };
-      let rtc = new RTCPeerConnection({ iceServers: [stunServer] });
-      rtc.createDataChannel('');
-      rtc.createOffer().then(offerDesc => rtc.setLocalDescription(offerDesc));
-      rtc.onicecandidate = function(evt) {
-        if (evt && evt.candidate && evt.candidate.candidate) {
-          let candidate = evt.candidate.candidate;
-          let ipMatch = candidate.match(/([0-9]{1,3}(?:\.[0-9]{1,3}){3})/);
-          if (ipMatch) {
-            let ip = ipMatch[1];
-            // 只检测公网IP（忽略内网）
-            if (ip !== ipv4 && !isPrivateIP(ip)) {
-              foundLeak = true;
-              document.getElementById('webrtc-leak').textContent = '发现WebRTC泄露：' + ip + '，查询中...';
-              // 查询GeoIP
-              fetch('https://ipsy.072103.xyz/api/query', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ip })
-              })
-              .then(r => r.json())
-              .then(trace => {
-                if(trace.location) {
-                  let info = [];
-                  if(trace.location.country) info.push('国家: ' + trace.location.country);
-                  if(trace.location.province) info.push('省份: ' + trace.location.province);
-                  if(trace.location.city) info.push('城市: ' + trace.location.city);
-                  if(trace.location.district) info.push('区县: ' + trace.location.district);
-                  document.getElementById('webrtc-leak').textContent = '发现WebRTC泄露：' + ip + '（' + info.join('，') + '）';
-                } else {
-                  document.getElementById('webrtc-leak').textContent = '发现WebRTC泄露：' + ip + '（无地理信息）';
-                }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 24px;
+      color: var(--ink);
+      font-family: var(--sans);
+      background: #ffffff;
+    }
+
+    .app {
+      width: min(920px, 100%);
+      margin: 0 auto;
+    }
+
+    .shell {
+      overflow: hidden;
+      border: 1px solid var(--line-strong);
+      border-radius: 24px;
+      background: #ffffff;
+      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.06);
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 20px;
+      border-bottom: 1px solid var(--line);
+      background: #ffffff;
+    }
+
+    .brand {
+      display: flex;
+      gap: 13px;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 38px;
+      height: 38px;
+      flex: none;
+      display: grid;
+      place-items: center;
+      border-radius: 13px;
+      background: var(--dark);
+      color: var(--white);
+      font-size: 13px;
+      font-weight: 900;
+      box-shadow: 0 8px 20px rgba(17, 17, 17, 0.16);
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 22px;
+      line-height: 1.25;
+      font-weight: 850;
+      letter-spacing: -0.03em;
+    }
+
+    .subtitle {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .refresh-btn {
+      flex: none;
+      height: 36px;
+      padding: 0 15px;
+      border: 1px solid var(--dark);
+      border-radius: 999px;
+      color: var(--white);
+      background: var(--dark);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 800;
+      box-shadow: 0 8px 20px rgba(17, 17, 17, 0.12);
+    }
+
+    .refresh-btn:hover {
+      background: var(--dark-2);
+    }
+
+    .content {
+      padding: 16px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .ip-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 285px));
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .card {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--paper);
+      box-shadow:
+        0 1px 0 rgba(17, 17, 17, 0.04),
+        0 10px 24px rgba(17, 17, 17, 0.04);
+    }
+
+    .summary-card {
+      padding: 12px 13px;
+    }
+
+    .ip-card {
+      min-height: 82px;
+      padding: 10px 11px;
+      background: #ffffff;
+    }
+
+    .ua-card {
+      padding: 12px 13px;
+      margin-bottom: 16px;
+    }
+
+    .label {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .tag {
+      color: var(--muted-2);
+      font-size: 11px;
+      font-family: var(--mono);
+      font-weight: 600;
+    }
+
+    .value {
+      display: inline-block;
+      max-width: 100%;
+      padding: 6px 8px;
+      border-radius: 10px;
+      border: 1px solid var(--line-strong);
+      color: var(--ink);
+      background: #ffffff;
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1.45;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    .ip-card .value {
+      font-size: 11.5px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+
+    #ip-v6 {
+      display: block;
+      width: 100%;
+      font-size: 10.8px;
+      white-space: nowrap;
+      word-break: normal;
+      overflow-wrap: normal;
+      overflow: hidden;
+      text-overflow: clip;
+    }
+
+    .addr {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    .ua {
+      padding: 10px;
+      border-radius: 12px;
+      border: 1px solid var(--line-strong);
+      color: var(--ink);
+      background: #ffffff;
+      font-family: var(--mono);
+      font-size: 11.5px;
+      font-weight: 900;
+      line-height: 1.55;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 4px 0 10px;
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .section-head::after {
+      content: "";
+      height: 1px;
+      flex: 1;
+      background: var(--line);
+    }
+
+    .speed-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .speed-card {
+      min-width: 0;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--paper);
+      box-shadow: 0 10px 24px rgba(17, 17, 17, 0.04);
+    }
+
+    .speed-name {
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .speed-value {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .loading,
+    .speed-gray {
+      color: var(--gray) !important;
+    }
+
+    .ok,
+    .warn {
+      color: var(--ink) !important;
+      font-weight: 900 !important;
+    }
+
+    .error,
+    .speed-red {
+      color: var(--red) !important;
+    }
+
+    .speed-green {
+      color: var(--green) !important;
+    }
+
+    .speed-yellow,
+    .speed-orange {
+      color: var(--yellow) !important;
+    }
+
+    .footer {
+      padding: 13px 16px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      background: #ffffff;
+      text-align: center;
+      font-size: 12px;
+    }
+
+    .footer a {
+      color: var(--ink);
+      text-decoration: none;
+      font-weight: 900;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 760px) {
+      body {
+        padding: 12px;
+      }
+
+      .topbar {
+        flex-direction: column;
+        padding: 16px;
+      }
+
+      .refresh-btn {
+        width: 100%;
+      }
+
+      .summary-grid,
+      .ip-grid,
+      .speed-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <main class="shell" aria-live="polite">
+      <header class="topbar">
+        <div class="brand">
+          <div class="mark">IP</div>
+          <div>
+            <h1>访客 IP 信息</h1>
+            <p class="subtitle">检测 IPv4 / IPv6、访问优先级、操作系统与常用网站连通性</p>
+          </div>
+        </div>
+
+        <button class="refresh-btn" id="refresh-btn" type="button">重新检测</button>
+      </header>
+
+      <section class="content">
+        <div class="summary-grid">
+          <article class="card summary-card">
+            <div class="label">
+              <span>访问优先</span>
+              <span class="tag">IP stack</span>
+            </div>
+            <div class="value loading" id="ip-priority">检测中...</div>
+          </article>
+
+          <article class="card summary-card">
+            <div class="label">
+              <span>操作系统</span>
+              <span class="tag">OS</span>
+            </div>
+            <div class="value loading" id="os-type">检测中...</div>
+          </article>
+        </div>
+
+        <div class="ip-grid">
+          <article class="card ip-card">
+            <div class="label">
+              <span>IPv4</span>
+              <span class="tag">Public</span>
+            </div>
+            <div class="value loading" id="ip-v4">检测中...</div>
+            <div class="addr" id="ip-v4-addr"></div>
+          </article>
+
+          <article class="card ip-card">
+            <div class="label">
+              <span>IPv6</span>
+              <span class="tag">Public</span>
+            </div>
+            <div class="value loading" id="ip-v6">检测中...</div>
+            <div class="addr" id="ip-v6-addr"></div>
+          </article>
+        </div>
+
+        <article class="card ua-card">
+          <div class="label">
+            <span>浏览器 UA</span>
+            <span class="tag">User-Agent</span>
+          </div>
+          <div class="ua" id="ua"></div>
+        </article>
+
+        <div class="section-head">常用网站测速</div>
+
+        <section class="speed-grid">
+          <article class="speed-card">
+            <div class="speed-name">百度</div>
+            <div id="speed-baidu" class="speed-value speed-gray">测速中...</div>
+          </article>
+
+          <article class="speed-card">
+            <div class="speed-name">GitHub</div>
+            <div id="speed-github" class="speed-value speed-gray">测速中...</div>
+          </article>
+
+          <article class="speed-card">
+            <div class="speed-name">Cloudflare</div>
+            <div id="speed-cloudflare" class="speed-value speed-gray">测速中...</div>
+          </article>
+
+          <article class="speed-card">
+            <div class="speed-name">Google</div>
+            <div id="speed-google" class="speed-value speed-gray">测速中...</div>
+          </article>
+        </section>
+      </section>
+
+      <footer class="footer">
+        Powered By
+        <a href="https://apmiy.github.io" target="_blank" rel="noopener noreferrer">Apmiy</a>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const DEFAULT_TIMEOUT = 7000;
+      const $ = id => document.getElementById(id);
+
+      const speedSites = [
+        { id: 'speed-baidu', url: 'https://www.baidu.com' },
+        { id: 'speed-github', url: 'https://github.com' },
+        { id: 'speed-cloudflare', url: 'https://cloudflare.com' },
+        { id: 'speed-google', url: 'https://www.google.com' }
+      ];
+
+      function joinAddress(...parts) {
+        return parts.filter(Boolean).join(' ');
+      }
+
+      function parseCloudflareTrace(text) {
+        const match = String(text || '').match(/^ip=(.+)$/m);
+        return {
+          ip: match ? match[1].trim() : '',
+          address: ''
+        };
+      }
+
+      const ipv4Apis = [
+        {
+          url: 'https://ipv4_ct.itdog.cn/',
+          type: 'json',
+          parse: data => ({ ip: data.ip, address: data.address || '' })
+        },
+        {
+          url: 'https://api-ipv4.ip.sb/geoip',
+          type: 'json',
+          parse: data => ({
+            ip: data.ip,
+            address: joinAddress(data.country, data.region, data.city, data.isp)
+          })
+        },
+        {
+          url: 'https://api-ipv4.ip.sb/ip',
+          type: 'text',
+          parse: text => ({ ip: text, address: '' })
+        },
+        {
+          url: 'https://api4.ipify.org?format=json',
+          type: 'json',
+          parse: data => ({ ip: data.ip, address: '' })
+        },
+        {
+          url: 'https://api.ipify.org?format=json',
+          type: 'json',
+          parse: data => ({ ip: data.ip, address: '' })
+        },
+        {
+          url: 'https://ipv4.icanhazip.com/',
+          type: 'text',
+          parse: text => ({ ip: text, address: '' })
+        },
+        {
+          url: 'https://v4.ident.me/',
+          type: 'text',
+          parse: text => ({ ip: text, address: '' })
+        },
+        {
+          url: 'https://www.cloudflare.com/cdn-cgi/trace',
+          type: 'text',
+          parse: parseCloudflareTrace
+        }
+      ];
+
+      const ipv4GeoApis = [
+        ipv4Apis[1],
+        ipv4Apis[0]
+      ];
+
+      const ipv6Apis = [
+        {
+          url: 'https://ipv6.itdog.cn/',
+          type: 'json',
+          parse: data => ({ ip: data.ip, address: data.address || '' })
+        },
+        {
+          url: 'https://api-ipv6.ip.sb/geoip',
+          type: 'json',
+          parse: data => ({
+            ip: data.ip,
+            address: joinAddress(data.country, data.region, data.city, data.isp)
+          })
+        },
+        {
+          url: 'https://api-ipv6.ip.sb/ip',
+          type: 'text',
+          parse: text => ({ ip: text, address: '' })
+        },
+        {
+          url: 'https://api6.ipify.org?format=json',
+          type: 'json',
+          parse: data => ({ ip: data.ip, address: '' })
+        },
+        {
+          url: 'https://api64.ipify.org?format=json',
+          type: 'json',
+          parse: data => ({ ip: data.ip, address: '' })
+        },
+        {
+          url: 'https://ipv6.icanhazip.com/',
+          type: 'text',
+          parse: text => ({ ip: text, address: '' })
+        },
+        {
+          url: 'https://v6.ident.me/',
+          type: 'text',
+          parse: text => ({ ip: text, address: '' })
+        },
+        {
+          url: 'https://www.cloudflare.com/cdn-cgi/trace',
+          type: 'text',
+          parse: parseCloudflareTrace
+        }
+      ];
+
+      const priorityApis = [
+        {
+          url: 'https://test.itdog.cn/',
+          type: 'json',
+          parse: data => {
+            const raw = String(data.version || '').toUpperCase();
+            if (raw === 'IPV4') return 'IPv4';
+            if (raw === 'IPV6') return 'IPv6';
+            return data.version || '';
+          }
+        },
+        {
+          url: 'https://api64.ipify.org?format=json',
+          type: 'json',
+          parse: data => detectIPVersion(data.ip)
+        },
+        {
+          url: 'https://www.cloudflare.com/cdn-cgi/trace',
+          type: 'text',
+          parse: text => detectIPVersion(parseCloudflareTrace(text).ip)
+        }
+      ];
+
+      function setText(id, text, state = '') {
+        const el = $(id);
+        if (!el) return;
+
+        el.textContent = text || '';
+        el.classList.remove('loading', 'ok', 'warn', 'error');
+
+        if (state) el.classList.add(state);
+      }
+
+      function setSpeed(id, text, cls = 'speed-gray') {
+        const el = $(id);
+        if (!el) return;
+
+        el.textContent = text;
+        el.className = 'speed-value ' + cls;
+      }
+
+      async function fetchRaw(url, options = {}, timeout = DEFAULT_TIMEOUT) {
+        if (!window.fetch) throw new Error('当前浏览器不支持 fetch');
+
+        const init = { ...options, cache: 'no-store' };
+        let timer;
+
+        if (window.AbortController) {
+          const controller = new AbortController();
+          init.signal = controller.signal;
+          timer = setTimeout(() => controller.abort(), timeout);
+
+          try {
+            const res = await fetch(url, init);
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res;
+          } finally {
+            clearTimeout(timer);
+          }
+        }
+
+        const request = fetch(url, init).then(res => {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res;
+        });
+
+        const timeoutTask = new Promise((_, reject) => {
+          timer = setTimeout(() => reject(new Error('请求超时')), timeout);
+        });
+
+        return Promise.race([request, timeoutTask]).finally(() => clearTimeout(timer));
+      }
+
+      async function requestApi(api, timeout = 5500) {
+        const res = await fetchRaw(api.url, {}, timeout);
+        const data = api.type === 'text' ? await res.text() : await res.json();
+        return api.parse(data);
+      }
+
+      function normalizeIPv4(value) {
+        const match = String(value || '').match(/\b(?:\d{1,3}\.){3}\d{1,3}\b/);
+        return match ? match[0] : '';
+      }
+
+      function isValidIPv4(ip) {
+        const parts = String(ip).split('.').map(Number);
+
+        return parts.length === 4 &&
+          parts.every(n => Number.isInteger(n) && n >= 0 && n <= 255);
+      }
+
+      function normalizeIPv6(value) {
+        const str = String(value || '').trim();
+        const match = str.match(/[0-9a-fA-F]{0,4}(?::[0-9a-fA-F]{0,4}){2,}[0-9a-fA-F]{0,4}/);
+        return match ? match[0] : '';
+      }
+
+      function isValidIPv6(ip) {
+        return String(ip).includes(':') &&
+          /^[0-9a-fA-F:]+$/.test(String(ip)) &&
+          String(ip).length >= 3;
+      }
+
+      function detectIPVersion(ip) {
+        if (isValidIPv4(normalizeIPv4(ip))) return 'IPv4';
+        if (isValidIPv6(normalizeIPv6(ip))) return 'IPv6';
+        return '';
+      }
+
+      function normalizeIPData(data, normalize, validate) {
+        const ip = normalize(data && data.ip);
+
+        if (!validate(ip)) throw new Error('无效 IP');
+
+        return {
+          ip,
+          address: (data && data.address) || ''
+        };
+      }
+
+      async function getIPFromApis(apis, normalize, validate) {
+        for (const api of apis) {
+          try {
+            return normalizeIPData(await requestApi(api), normalize, validate);
+          } catch {
+            // 当前接口失败，继续尝试下一个
+          }
+        }
+
+        throw new Error('--');
+      }
+
+      function getFastIPFromApis(apis, normalize, validate, timeout = 3200) {
+        return new Promise((resolve, reject) => {
+          let pending = apis.length;
+          let done = false;
+
+          if (!pending) {
+            reject(new Error('--'));
+            return;
+          }
+
+          apis.forEach(api => {
+            requestApi(api, timeout)
+              .then(data => {
+                const result = normalizeIPData(data, normalize, validate);
+                if (done) return;
+                done = true;
+                resolve(result);
               })
               .catch(() => {
-                document.getElementById('webrtc-leak').textContent = '发现WebRTC泄露：' + ip + '（查询失败）';
+                if (done) return;
+                pending -= 1;
+                if (pending === 0) reject(new Error('--'));
               });
-            }
-          }
-        } else if (!foundLeak) {
-          document.getElementById('webrtc-leak').textContent = '未发现WebRTC泄露';
-        }
-      };
-    }
-    // 判断是否为内网IP
-    function isPrivateIP(ip) {
-      return /^10\./.test(ip) || /^192\.168\./.test(ip) || /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(ip) || /^127\./.test(ip);
-    }
-    // 常用网站测速
-    function testSpeed(url, domId) {
-      const el = document.getElementById(domId);
-      const img = new Image();
-      const start = Date.now();
-      let finished = false; // 标志位
+          });
+        });
+      }
 
-      img.src = url + '/favicon.ico?_t=' + Math.random();
-      img.onload = img.onerror = function() {
-        if (finished) return; // 如果已经超时，不再处理
-        const ms = Date.now() - start;
-        let cls = '';
-        if (ms < 200) cls = 'speed-green';
-        else if (ms < 1000) cls = 'speed-orange';
-        else cls = 'speed-red';
-        el.textContent = ms + ' ms';
-        el.className = 'speed-value ' + cls;
-        finished = true;
-      };
-      setTimeout(() => {
-        if (!finished) {
-          el.textContent = '超时';
-          el.className = 'speed-value speed-gray';
-          finished = true;
+      function getFastAddressFromApis(apis, normalize, validate, timeout = 4500) {
+        return new Promise((resolve, reject) => {
+          let pending = apis.length;
+          let done = false;
+
+          if (!pending) {
+            reject(new Error('--'));
+            return;
+          }
+
+          apis.forEach(api => {
+            requestApi(api, timeout)
+              .then(data => {
+                const result = normalizeIPData(data, normalize, validate);
+                if (!result.address) throw new Error('--');
+                if (done) return;
+                done = true;
+                resolve(result);
+              })
+              .catch(() => {
+                if (done) return;
+                pending -= 1;
+                if (pending === 0) reject(new Error('--'));
+              });
+          });
+        });
+      }
+
+      function detectOS() {
+        const ua = navigator.userAgent.toLowerCase();
+        const platform = (navigator.platform || '').toLowerCase();
+
+        if (/iphone|ipad|ipod/.test(ua)) return 'iOS';
+        if (platform === 'macintel' && navigator.maxTouchPoints > 1) return 'iPadOS';
+        if (/windows nt/.test(ua)) return 'Windows';
+        if (/android/.test(ua)) return 'Android';
+        if (/macintosh|mac os x/.test(ua)) return 'macOS';
+        if (/linux/.test(ua)) return 'Linux';
+
+        return '未知系统';
+      }
+
+      async function loadPriority() {
+        for (const api of priorityApis) {
+          try {
+            const version = await requestApi(api);
+
+            if (version === 'IPv4' || version === 'IPv6') {
+              setText('ip-priority', version, 'ok');
+              return;
+            }
+          } catch {
+            // 当前接口失败，继续尝试下一个
+          }
         }
-      }, 5000);
-    }
-    testSpeed('https://www.baidu.com', 'speed-baidu');
-    testSpeed('https://github.com', 'speed-github');
-    testSpeed('https://cloudflare.com', 'speed-cloudflare');
-    testSpeed('https://www.google.com', 'speed-google');
-    // itdog 海外IPv4
-    fetch('https://ipv4-overseas.itdog.plus/')
-      .then(r => r.json())
-      .then(data => {
-        let ip = data.ip || '获取失败';
-        let loc = data.address || '';
-        document.getElementById('node-itdog-v4-over').textContent = ip + (loc ? ' ' + loc : '');
-      })
-      .catch(() => {
-        document.getElementById('node-itdog-v4-over').textContent = '获取失败';
-      });
-    // itdog 海外IPv6
-    fetch('https://ipv6-overseas.itdog.plus/')
-      .then(r => r.json())
-      .then(data => {
-        let ip = data.ip || '获取失败';
-        let loc = data.address || '';
-        document.getElementById('node-itdog-v6-over').textContent = ip + (loc ? ' ' + loc : '');
-      })
-      .catch(() => {
-        document.getElementById('node-itdog-v6-over').textContent = '获取失败';
-      });
-    // itdog 移动IPv4
-    fetch('https://ipv4_cm.itdog.cn/')
-      .then(r => r.json())
-      .then(data => {
-        let ip = data.ip || '获取失败';
-        let loc = data.address || '';
-        document.getElementById('node-itdog-v4-cm').textContent = ip + (loc ? ' ' + loc : '');
-      })
-      .catch(() => {
-        document.getElementById('node-itdog-v4-cm').textContent = '获取失败';
-      });
-    // itdog 移动IPv6
-    fetch('https://ipv6_cm.itdog.cn/')
-      .then(r => r.json())
-      .then(data => {
-        let ip = data.ip || '获取失败';
-        let loc = data.address || '';
-        document.getElementById('node-itdog-v6-cm').textContent = ip + (loc ? ' ' + loc : '');
-      })
-      .catch(() => {
-        document.getElementById('node-itdog-v6-cm').textContent = '获取失败';
-      });
-    // lvhai IPv4
-    fetch('https://ipv4.lvhai.org/')
-      .then(r => r.json())
-      .then(data => {
-        let ip = data.ip || '获取失败';
-        let loc = data.address || '';
-        document.getElementById('node-lvhai-v4').textContent = ip + (loc ? ' ' + loc : '');
-      })
-      .catch(() => {
-        document.getElementById('node-lvhai-v4').textContent = '获取失败';
-      });
-    // lvhai IPv6
-    fetch('https://ipv6.lvhai.org/')
-      .then(r => r.json())
-      .then(data => {
-        let ip = data.ip || '获取失败';
-        let loc = data.address || '';
-        document.getElementById('node-lvhai-v6').textContent = ip + (loc ? ' ' + loc : '');
-      })
-      .catch(() => {
-        document.getElementById('node-lvhai-v6').textContent = '获取失败';
-      });
+
+        setText('ip-priority', '获取失败', 'error');
+      }
+
+      let ipv4LoadToken = 0;
+
+      async function loadIPv4() {
+        const token = ++ipv4LoadToken;
+        const addressTask = getFastAddressFromApis(ipv4GeoApis, normalizeIPv4, isValidIPv4)
+          .catch(() => null);
+
+        try {
+          const data = await getFastIPFromApis(ipv4Apis, normalizeIPv4, isValidIPv4);
+          if (token !== ipv4LoadToken) return;
+
+          setText('ip-v4', data.ip, 'ok');
+          setText('ip-v4-addr', data.address || '');
+
+          addressTask.then(addressData => {
+            if (token !== ipv4LoadToken || !addressData || !addressData.address) return;
+            setText('ip-v4-addr', addressData.address);
+          });
+        } catch {
+          if (token !== ipv4LoadToken) return;
+          setText('ip-v4', '获取失败', 'error');
+          setText('ip-v4-addr', '');
+        }
+      }
+
+      async function loadIPv6() {
+        try {
+          const data = await getIPFromApis(ipv6Apis, normalizeIPv6, isValidIPv6);
+
+          setText('ip-v6', data.ip, 'ok');
+          setText('ip-v6-addr', data.address || '');
+        } catch {
+          setText('ip-v6', '无可用 IPv6 ', 'warn');
+          setText('ip-v6-addr', '');
+        }
+      }
+
+      function testSpeed(url, id) {
+        const img = new Image();
+        const start = window.performance && performance.now ? performance.now() : Date.now();
+        let finished = false;
+
+        const done = success => {
+          if (finished) return;
+          finished = true;
+
+          const now = window.performance && performance.now ? performance.now() : Date.now();
+          const ms = Math.round(now - start);
+
+          if (!success) {
+            setSpeed(id, '超时', 'speed-gray');
+            return;
+          }
+
+          let cls = 'speed-red';
+          if (ms < 200) cls = 'speed-green';
+          else if (ms < 1000) cls = 'speed-yellow';
+
+          setSpeed(id, ms + ' ms', cls);
+        };
+
+        const timer = setTimeout(() => done(false), 5000);
+
+        img.onload = img.onerror = () => {
+          clearTimeout(timer);
+          done(true);
+        };
+
+        img.referrerPolicy = 'no-referrer';
+        img.src = url.replace(/\/$/, '') + '/favicon.ico?_t=' + Date.now() + '_' + Math.random();
+      }
+
+      function resetUI() {
+        setText('ua', navigator.userAgent || '未知');
+        setText('os-type', detectOS(), 'ok');
+
+        ['ip-priority', 'ip-v4', 'ip-v6'].forEach(id => {
+          setText(id, '检测中...', 'loading');
+        });
+
+        setText('ip-v4-addr', '');
+        setText('ip-v6-addr', '');
+
+        speedSites.forEach(item => {
+          setSpeed(item.id, '测速中...', 'speed-gray');
+        });
+      }
+
+      function run() {
+        resetUI();
+
+        speedSites.forEach(item => {
+          testSpeed(item.url, item.id);
+        });
+
+        if (!window.fetch) {
+          ['ip-priority', 'ip-v4', 'ip-v6'].forEach(id => {
+            setText(id, '当前浏览器不支持 fetch', 'error');
+          });
+          return;
+        }
+
+        loadPriority();
+        loadIPv4();
+        loadIPv6();
+      }
+
+      $('refresh-btn').addEventListener('click', run);
+      run();
+    })();
   </script>
 </body>
 </html>
